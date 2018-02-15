@@ -19,16 +19,21 @@ class CT_seg_alg(object):
         thre = 5 #default is 5 (dont change)
         CT_sitk = self.image_sitk
         roi_sitk = self.label_sitk
-        seed = (148,306,80)
-        seg = sitk.Image(CT_sitk.GetSize(), sitk.sitkUInt8)
-        seg.CopyInformation(CT_sitk)
-        seg[seed] = 1
+        CT=sitk.GetArrayFromImage(CT_sitk)
+        roi=sitk.GetArrayFromImage(roi_sitk)
+        roi=roi>0
+        seedpointobj=FastMarching_threshold_slicer()
+        seedpoint=seedpointobj.computeCentroid_swap(roi)
+#        seed = (172,191,169)
+#        seg = sitk.Image(CT_sitk.GetSize(), sitk.sitkUInt8)
+#        seg.CopyInformation(CT_sitk)
+#        seg[seed] = 1
         #seg = sitk.BinaryDilate(blurredFLAIR, 3)
         #segFLAIR = sitk.ConnectedThreshold(blurredFLAIR, seedList=[seed], lower=200, upper=1200)
         
-        semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seed],
+        semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
                                    numberOfIterations=5,
-                                   multiplier=1.5,
+                                   multiplier=2.5,
                                    initialNeighborhoodRadius=1,
                                    replaceValue=1)
         print('done')
@@ -42,27 +47,95 @@ class CT_seg_alg(object):
         semiauto = sitk.BinaryMorphologicalClosing(semiauto,
                                             vectorRadius,
                                             kernel)
-        CT=sitk.GetArrayFromImage(CT_sitk)
-        roi=sitk.GetArrayFromImage(roi_sitk)
-        roi=roi>0
-        seedpointobj=FastMarching_threshold_slicer()
-        seedpoint=seedpointobj.computeCentroid_swap(roi)
+#        b = np.array(semiauto)
+#        white_pix = b.reshape(-1)
+        nda = sitk.GetArrayFromImage(semiauto)
+        white_pix = np.count_nonzero(nda)
+#        n_white_pix = np.sum(semiauto == 1)
+        print('Number of white pixels:', white_pix)
+        if white_pix > 30000:
+                    semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
+                                                        numberOfIterations=5,
+                                                        multiplier=2.0,
+                                                        initialNeighborhoodRadius=1,
+                                                        replaceValue=1)
+                    print('done')
 
-        feature_img=sitk.GradientMagnitudeRecursiveGaussian(CT_sitk, sigma=sigma) 
-        speed_img = sitk.BoundedReciprocal(feature_img) # This is parameter free unlike the Sigmoid
+                    vectorRadius = (10, 10, 5)
+                    kernel = sitk.sitkBall
+                    semiauto = sitk.BinaryMorphologicalClosing(semiauto,
+                                                               vectorRadius,
+                                                               kernel)
 
-        fm_filter = sitk.FastMarchingBaseImageFilter()
-        fm_filter.SetTrialPoints([seedpoint])
-        fm_filter.SetStoppingValue(1000)
-        fm_img = fm_filter.Execute(speed_img)
+                    nda = sitk.GetArrayFromImage(semiauto)
+                    white_pix = np.count_nonzero(nda)
 
-        seg=sitk.Threshold(fm_img,
-                            lower=0,
-                            upper=fm_filter.GetStoppingValue(),
-                            outsideValue=fm_filter.GetStoppingValue()+1)
+                    print('Number of white pixels:', white_pix)
+                    
+                    if white_pix > 30000:
+                        
+                        semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
+                                                            numberOfIterations=5,
+                                                            multiplier=1.75,
+                                                            initialNeighborhoodRadius=1,
+                                                            replaceValue=1)
+                        print('done')
 
-        x=sitk.GetArrayFromImage(seg)
-        p1, p2 = np.percentile(np.unique(x), (0,thre)) # set (0,5) as default
+                        vectorRadius = (10, 10, 5)
+                        kernel = sitk.sitkBall
+                        semiauto = sitk.BinaryMorphologicalClosing(semiauto,
+                                                                   vectorRadius,
+                                                                   kernel)
+
+                        nda = sitk.GetArrayFromImage(semiauto)
+                        white_pix = np.count_nonzero(nda)
+
+                        print('Number of white pixels:', white_pix)
+                        if white_pix > 30000:
+                            
+                                                                                                        
+                        
+                            semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
+                                                                numberOfIterations=5,
+                                                                multiplier=1.5,
+                                                                initialNeighborhoodRadius=1,
+                                                                replaceValue=1)
+                            print('done')
+
+                            vectorRadius = (10, 10, 5)
+                            kernel = sitk.sitkBall
+                            semiauto = sitk.BinaryMorphologicalClosing(semiauto,
+                                                                   vectorRadius,
+                                                                   kernel)
+
+                            nda = sitk.GetArrayFromImage(semiauto)
+                            white_pix = np.count_nonzero(nda)
+
+                            print('Number of white pixels:', white_pix)
+                            if white_pix > 30000:
+                                
+                            
+                                                                                                        
+                        
+                                semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
+                                                                    numberOfIterations=5,
+                                                                    multiplier=1.2,
+                                                                    initialNeighborhoodRadius=1,
+                                                                    replaceValue=1)
+                                print('done')
+
+                                vectorRadius = (10, 10, 5)
+                                kernel = sitk.sitkBall
+                                semiauto = sitk.BinaryMorphologicalClosing(semiauto,
+                                                                   vectorRadius,
+                                                                   kernel)
+
+                                nda = sitk.GetArrayFromImage(semiauto)
+                                white_pix = np.count_nonzero(nda)
+
+                                print('Number of white pixels:', white_pix)
+            
+
 
         return semiauto
 
