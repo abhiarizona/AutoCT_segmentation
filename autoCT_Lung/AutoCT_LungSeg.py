@@ -18,7 +18,7 @@ class AutoCT_LungSeg:
 	def __init__(self, parent):
 		parent.title = "Auto CT Segmentation"
 		parent.categories = ["Examples"]
-		parent.contributors = ["Stephen Yip and Lingdao Sha @TEMPUS Wrote this code"]
+		parent.contributors = ["Stephen Yip, Lingdao Sha and Abhishek Pandey @TEMPUS Wrote this code"]
 		parent.helpText = """ Auto CT Tumor segmentation and 3D tumor generation """
 		parent.acknowledgementText = ""
 		self.parent = parent
@@ -63,36 +63,36 @@ class AutoCT_LungSegWidget:
 
 		#####Ajust sigma value for CT##########
 		##########################################
-		sigmalabel = qt.QLabel()
-		sigmalabel.setText("Ajust sigma value for better segmentation (1-10)")
-		autoCTFormLayout.addWidget(sigmalabel)
-		sigmaSlider = qt.QSlider(qt.Qt.Horizontal)
-		sigmaSlider.toolTip = "Slie to thange threshold value"
-		sigmaSlider.setMinimum(0.0)
-		sigmaSlider.setMaximum(20)
-		sigmaSlider.setValue(6.0)
-		sigmaSlider.setTickPosition(qt.QSlider.TicksBelow)
-		sigmaSlider.setTickInterval(1)
-		self.sigmaSlider = sigmaSlider
-		#label for ticks
-		sigmavalues = qt.QGridLayout()
-		r1 = qt.QLabel("0")
-		r2 = qt.QLabel("2")
-		r3 = qt.QLabel("4")
-		r4 = qt.QLabel("6")
-		r5 = qt.QLabel("8")
-		sigmavalues.addWidget(sigmaSlider, 0,0,1,5)
-		sigmavalues.addWidget(r1,1,0,1,1)
-		sigmavalues.addWidget(r2,1,1,1,1)
-		sigmavalues.addWidget(r3,1,2,1,1)
-		sigmavalues.addWidget(r4,1,3,1,1)
-		sigmavalues.addWidget(r5,1,4,1,1)
-		#Apply the changes
-		sigmaApplyButton = qt.QPushButton("Apply")
-		sigmaApplyButton.toolTip = "Click to apply new sigma value"
-		sigmavalues.addWidget(sigmaApplyButton, 0,5,2,1)
-		sigmaApplyButton.connect('clicked(bool)', self.changesApplyButtonClicked)
-		autoCTFormLayout.addRow(sigmavalues)
+#		sigmalabel = qt.QLabel()
+#		sigmalabel.setText("Ajust sigma value for better segmentation (1-10)")
+#		autoCTFormLayout.addWidget(sigmalabel)
+#		sigmaSlider = qt.QSlider(qt.Qt.Horizontal)
+#		sigmaSlider.toolTip = "Slie to thange threshold value"
+#		sigmaSlider.setMinimum(0.0)
+#		sigmaSlider.setMaximum(20)
+#		sigmaSlider.setValue(6.0)
+#		sigmaSlider.setTickPosition(qt.QSlider.TicksBelow)
+#		sigmaSlider.setTickInterval(1)
+#		self.sigmaSlider = sigmaSlider
+#		#label for ticks
+#		sigmavalues = qt.QGridLayout()
+#		r1 = qt.QLabel("0")
+#		r2 = qt.QLabel("2")
+#		r3 = qt.QLabel("4")
+#		r4 = qt.QLabel("6")
+#		r5 = qt.QLabel("8")
+#		sigmavalues.addWidget(sigmaSlider, 0,0,1,5)
+#		sigmavalues.addWidget(r1,1,0,1,1)
+#		sigmavalues.addWidget(r2,1,1,1,1)
+#		sigmavalues.addWidget(r3,1,2,1,1)
+#		sigmavalues.addWidget(r4,1,3,1,1)
+#		sigmavalues.addWidget(r5,1,4,1,1)
+#		#Apply the changes
+#		sigmaApplyButton = qt.QPushButton("Apply")
+#		sigmaApplyButton.toolTip = "Click to apply new sigma value"
+#		sigmavalues.addWidget(sigmaApplyButton, 0,5,2,1)
+#		sigmaApplyButton.connect('clicked(bool)', self.changesApplyButtonClicked)
+#		autoCTFormLayout.addRow(sigmavalues)
 		# Add vertical spacer
 		self.layout.addStretch(1)
 		
@@ -188,14 +188,14 @@ class AutoCT_LungSegWidget:
 
 	def onCTSeg3DButtonClicked(self):
 		if self.image_loaded == True:
-			sigma = self.sigmaSlider.value #default value of sigma
+			#sigma = self.sigmaSlider.value #default value of sigma
 			output_filepath = str(self.path+self.image_name+self.labelpostfix+self.filetype)
 			label_sitk = su.PullFromSlicer(self.label_name)
 			image_sitk = su.PullFromSlicer(self.image_name)
 			print("Image and label array generated.")
 			print("output_filepath is: ",output_filepath)
 
-			seg_alg = AutoCT_LungSegWizard.CT_seg_alg(image_sitk, label_sitk, sigma)
+			seg_alg = AutoCT_LungSegWizard.CT_seg_alg(image_sitk, label_sitk)
 			seg = seg_alg.setup()
 			ifw = sitk.ImageFileWriter()
 			ifw.SetFileName(output_filepath)
@@ -210,34 +210,34 @@ class AutoCT_LungSegWidget:
 			self.labelNode = labelNode
 			self.auto3DGen()
 
-	def changesApplyButtonClicked(self):
-		if self.image_loaded == True:
-			sigma = self.sigmaSlider.value
-			print("sigma value is: ", sigma)
-			output_filepath = str(self.path+self.image_name+self.labelpostfix+self.filetype)
-			label_sitk = su.PullFromSlicer(self.label_name)
-			image_sitk = su.PullFromSlicer(self.image_name)
-			print("Image and label array generated.")
-			print("output_filepath is: ",output_filepath)
-
-			seg_alg = AutoCT_LungSegWizard.CT_seg_alg(image_sitk, label_sitk, sigma)
-			seg = seg_alg.setup()
-			ifw = sitk.ImageFileWriter()
-			ifw.SetFileName(output_filepath)
-			ifw.SetUseCompression(True)
-			ifw.Execute(seg)
-
-			semi_label_path = output_filepath
-			semi_label = slicer.util.loadVolume(semi_label_path, properties={'labelmap':True}, returnNode=True)
-			self.semi_label_path = semi_label_path
-
-			labelNodeOrd = slicer.util.getNodes(pattern=self.image_name+self.labelpostfix+'*', scene=None, useLists=False)
-			labelNodelist = list(labelNodeOrd.items())
-			labelNodeName = labelNodelist[-1][0]
-			print(labelNodeName)
-			labelNode = slicer.util.getNode(pattern=labelNodeName)
-			self.labelNode = labelNode
-			self.auto3DGen()
+#	def changesApplyButtonClicked(self):
+#		if self.image_loaded == True:
+#			sigma = self.sigmaSlider.value
+#			print("sigma value is: ", sigma)
+#			output_filepath = str(self.path+self.image_name+self.labelpostfix+self.filetype)
+#			label_sitk = su.PullFromSlicer(self.label_name)
+#			image_sitk = su.PullFromSlicer(self.image_name)
+#			print("Image and label array generated.")
+#			print("output_filepath is: ",output_filepath)
+#
+#			seg_alg = AutoCT_LungSegWizard.CT_seg_alg(image_sitk, label_sitk, sigma)
+#			seg = seg_alg.setup()
+#			ifw = sitk.ImageFileWriter()
+#			ifw.SetFileName(output_filepath)
+#			ifw.SetUseCompression(True)
+#			ifw.Execute(seg)
+#
+#			semi_label_path = output_filepath
+#			semi_label = slicer.util.loadVolume(semi_label_path, properties={'labelmap':True}, returnNode=True)
+#			self.semi_label_path = semi_label_path
+#
+#			labelNodeOrd = slicer.util.getNodes(pattern=self.image_name+self.labelpostfix+'*', scene=None, useLists=False)
+#			labelNodelist = list(labelNodeOrd.items())
+#			labelNodeName = labelNodelist[-1][0]
+#			print(labelNodeName)
+#			labelNode = slicer.util.getNode(pattern=labelNodeName)
+#			self.labelNode = labelNode
+#			self.auto3DGen()
 
 	def updateAnnotationButtonClicked(self):
 		if self.image_loaded == True:
