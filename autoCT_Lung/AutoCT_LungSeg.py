@@ -10,7 +10,7 @@ import SimpleITK as sitk
 import sitkUtils as su 
 import sys
 from EditorLib import EditUtil
-#from CT_seg_alg import CT_seg_alg
+#import CT_seg_alg_tumor
 import AutoCT_LungSegWizard
 
 
@@ -52,7 +52,63 @@ class AutoCT_LungSegWidget:
         loadCTButton.toolTip = "Click to load CT image and then annotate tumor location"
         autoCTFormLayout.addWidget(loadCTButton)
         loadCTButton.connect('clicked(bool)', self.onloadCTButtonClicked)
+        
+        #Number of nodule to operate
+#        loadCTnodulelabel = qt.QInputDialog()
+#        loadCTnodulelabel.toolTip = "The tumor number to segment"
+#        loadCTnodulelabel.getInt(self, "Get integer","Percentage:")
+#        autoCTFormLayout.addWidget(loadCTnodulelabel)
+#        loadCTnodulelabel.connect('clicked(bool)', self.onloadCTnodulelabelButtonClicked)
+#        
 
+        ####Ajust sigma value for CT##########
+        #########################################
+#        nodulelabel1 = qt.QLabel()
+#        nodulelabel1.setText("Enter the nodule number to process")
+#        autoCTFormLayout.addWidget(nodulelabel1)
+#        noduleSlider1 = qt.QInputDialog()
+#        noduleSlider1.toolTip = "Slide to change nodule number"
+#        autoCTFormLayout.addWidget(noduleSlider1)
+##        noduleSlider1.setMinimum(0.0)
+##        noduleSlider1.setMaximum(20)
+##        noduleSlider1.setValue(1.0)
+##        noduleSlider.setTickPosition(qt.QSlider.TicksBelow)
+##        noduleSlider.setTickInterval(1)
+#        self.noduleSlider1 = noduleSlider1
+        
+        nodulelabel = qt.QLabel()
+        nodulelabel.setText("Enter the nodule number to segment (1-10)")
+        autoCTFormLayout.addWidget(nodulelabel)
+        noduleSlider = qt.QSlider(qt.Qt.Horizontal)
+        noduleSlider.toolTip = "Slide to change nodule number"
+        noduleSlider.setMinimum(0.0)
+        noduleSlider.setMaximum(20)
+        noduleSlider.setValue(1.0)
+        noduleSlider.setTickPosition(qt.QSlider.TicksBelow)
+        noduleSlider.setTickInterval(1)
+        self.noduleSlider = noduleSlider
+        #label for ticks
+        nodulevalues = qt.QGridLayout()
+        r1 = qt.QLabel("0")
+        r2 = qt.QLabel("2")
+        r3 = qt.QLabel("4")
+        r4 = qt.QLabel("6")
+        r5 = qt.QLabel("8")
+        nodulevalues.addWidget(noduleSlider, 0,0,1,5)
+        nodulevalues.addWidget(r1,1,0,1,1)
+        nodulevalues.addWidget(r2,1,1,1,1)
+        nodulevalues.addWidget(r3,1,2,1,1)
+        nodulevalues.addWidget(r4,1,3,1,1)
+        nodulevalues.addWidget(r5,1,4,1,1)
+        #Apply the changes
+#        noduleApplyButton = qt.QPushButton("Apply")
+#        noduleApplyButton.toolTip = "Click to apply new sigma value"
+#        nodulevalues.addWidget(noduleApplyButton, 0,5,2,1)
+#        noduleApplyButton.connect('clicked(bool)', self.changesApplyButtonClicked)
+        autoCTFormLayout.addRow(nodulevalues)
+        # Add vertical spacer
+        self.layout.addStretch(1)
+        
 
         #########Button for CT segmentation and 3D generation##########
         ###########################################################
@@ -60,43 +116,18 @@ class AutoCT_LungSegWidget:
         CTSeg3D_tumorButton.toolTip = "Click to generate auto segmentation and 3D view of tumor"
         autoCTFormLayout.addWidget(CTSeg3D_tumorButton)
         CTSeg3D_tumorButton.connect('clicked(bool)', self.onCTSeg3D_tumorButtonClicked)
-
-        #####Ajust sigma value for CT##########
-        ##########################################
-#        sigmalabel = qt.QLabel()
-#        sigmalabel.setText("Ajust sigma value for better segmentation (1-10)")
-#        autoCTFormLayout.addWidget(sigmalabel)
-#        sigmaSlider = qt.QSlider(qt.Qt.Horizontal)
-#        sigmaSlider.toolTip = "Slie to thange threshold value"
-#        sigmaSlider.setMinimum(0.0)
-#        sigmaSlider.setMaximum(20)
-#        sigmaSlider.setValue(6.0)
-#        sigmaSlider.setTickPosition(qt.QSlider.TicksBelow)
-#        sigmaSlider.setTickInterval(1)
-#        self.sigmaSlider = sigmaSlider
-#        #label for ticks
-#        sigmavalues = qt.QGridLayout()
-#        r1 = qt.QLabel("0")
-#        r2 = qt.QLabel("2")
-#        r3 = qt.QLabel("4")
-#        r4 = qt.QLabel("6")
-#        r5 = qt.QLabel("8")
-#        sigmavalues.addWidget(sigmaSlider, 0,0,1,5)
-#        sigmavalues.addWidget(r1,1,0,1,1)
-#        sigmavalues.addWidget(r2,1,1,1,1)
-#        sigmavalues.addWidget(r3,1,2,1,1)
-#        sigmavalues.addWidget(r4,1,3,1,1)
-#        sigmavalues.addWidget(r5,1,4,1,1)
-#        #Apply the changes
-#        sigmaApplyButton = qt.QPushButton("Apply")
-#        sigmaApplyButton.toolTip = "Click to apply new sigma value"
-#        sigmavalues.addWidget(sigmaApplyButton, 0,5,2,1)
-#        sigmaApplyButton.connect('clicked(bool)', self.changesApplyButtonClicked)
-#        autoCTFormLayout.addRow(sigmavalues)
-        # Add vertical spacer
-        self.layout.addStretch(1)
         
-        ############## Update manual annotation fixation ############
+        ####Ajust multipler value for CT (fine tuning)##########
+        #########################################
+        
+#        CTfinetuneButton = qt.QPushButton("Fine_tuning")
+#        CTfinetuneButton.toolTip = "Fine tuning segmentation for better ROI"
+#        autoCTFormLayout.addWidget(CTfinetuneButton)
+#        CTfinetuneButton.connect('clicked(bool)', self.onCTfinetuneButtonClicked)
+
+
+        
+        ############## Button segment out lung ############
         CTSeg3D_lungButton = qt.QPushButton("CTSeg3D_lung")
         CTSeg3D_lungButton.toolTip = "Click to generate auto segmentation and 3D view of lung"
         autoCTFormLayout.addWidget(CTSeg3D_lungButton)
@@ -145,8 +176,8 @@ class AutoCT_LungSegWidget:
         self.label_path = label_path
         self.image_name = image.GetName()
         self.label_name = label_name
-        self.labelpostfix1 = '_tumor_confidenceconnected'
-        self.labelpostfix2 = '_lung_confidenceconnected'
+        self.labelpostfix1 = '_tumor_label'
+        self.labelpostfix2 = '_lung_label'
         
         selectionNode = slicer.app.applicationLogic().GetSelectionNode()
         selectionNode.SetReferenceActiveLabelVolumeID(label.GetID())
@@ -189,14 +220,18 @@ class AutoCT_LungSegWidget:
 
     def onCTSeg3D_tumorButtonClicked(self):
         if self.image_loaded == True:
-            #sigma = self.sigmaSlider.value #default value of sigma
-            output_filepath = str(self.path+self.image_name+self.labelpostfix1+self.filetype)
+            node_num = self.noduleSlider.value/2 #default value of sigma
+#            node_num1 = self.noduleSlider1.getInt #default value of sigma
+            node_num = int(node_num)
+            print("nodule number is: ", node_num)
+            output_filepath = str(self.path+self.image_name+self.labelpostfix1+"_"+str(node_num)+self.filetype)
             label_sitk = su.PullFromSlicer(self.label_name)
             image_sitk = su.PullFromSlicer(self.image_name)
             print("Image and label array generated.")
             print("output_filepath is: ",output_filepath)
-
+            #self.multiplier = 1
             seg_alg = AutoCT_LungSegWizard.CT_seg_alg_tumor(image_sitk, label_sitk)
+            #self.multi = tune
             seg = seg_alg.setup()
             ifw = sitk.ImageFileWriter()
             ifw.SetFileName(output_filepath)
@@ -207,21 +242,22 @@ class AutoCT_LungSegWidget:
             semi_label = slicer.util.loadVolume(semi_label_path, properties={'labelmap':True}, returnNode=True)
             self.semi_label_path = semi_label_path
 
-            labelNode = slicer.util.getNode(pattern=self.image_name+self.labelpostfix1)
+            labelNode = slicer.util.getNode(pattern=self.image_name+self.labelpostfix1+"_"+str(node_num))
             self.labelNode = labelNode
             self.auto3DGen()
 
-#    def changesApplyButtonClicked(self):
+#    def onCTfinetuneButtonClicked(self):
 #        if self.image_loaded == True:
-#            sigma = self.sigmaSlider.value
-#            print("sigma value is: ", sigma)
-#            output_filepath = str(self.path+self.image_name+self.labelpostfix+self.filetype)
+#            tune = 2
+#            node_num = self.noduleSlider.value/2 #default value of sigma
+#            print("nodule number is: ", node_num)
+#            output_filepath = str(self.path+self.image_name+self.labelpostfix1+"_"+str(node_num)+self.filetype)
 #            label_sitk = su.PullFromSlicer(self.label_name)
 #            image_sitk = su.PullFromSlicer(self.image_name)
 #            print("Image and label array generated.")
 #            print("output_filepath is: ",output_filepath)
 #
-#            seg_alg = AutoCT_LungSegWizard.CT_seg_alg(image_sitk, label_sitk, sigma)
+#            seg_alg = AutoCT_LungSegWizard.CT_seg_alg_tumorfine(image_sitk, label_sitk, tune)
 #            seg = seg_alg.setup()
 #            ifw = sitk.ImageFileWriter()
 #            ifw.SetFileName(output_filepath)
@@ -232,18 +268,14 @@ class AutoCT_LungSegWidget:
 #            semi_label = slicer.util.loadVolume(semi_label_path, properties={'labelmap':True}, returnNode=True)
 #            self.semi_label_path = semi_label_path
 #
-#            labelNodeOrd = slicer.util.getNodes(pattern=self.image_name+self.labelpostfix+'*', scene=None, useLists=False)
-#            labelNodelist = list(labelNodeOrd.items())
-#            labelNodeName = labelNodelist[-1][0]
-#            print(labelNodeName)
-#            labelNode = slicer.util.getNode(pattern=labelNodeName)
+#            labelNode = slicer.util.getNode(pattern=self.image_name+self.labelpostfix1+"_"+str(node_num))
 #            self.labelNode = labelNode
 #            self.auto3DGen()
 
     def onCTSeg3D_lungButtonClicked(self):
         if self.image_loaded == True:
             #sigma = self.sigmaSlider.value #default value of sigma
-            output_filepath = str(self.path+self.image_name+self.labelpostfix1+self.filetype)
+            output_filepath = str(self.path+self.image_name+self.labelpostfix2+self.filetype)
             label_sitk = su.PullFromSlicer(self.label_name)
             image_sitk = su.PullFromSlicer(self.image_name)
             print("Image and label array generated.")
@@ -260,7 +292,7 @@ class AutoCT_LungSegWidget:
             semi_label = slicer.util.loadVolume(semi_label_path, properties={'labelmap':True}, returnNode=True)
             self.semi_label_path = semi_label_path
 
-            labelNode = slicer.util.getNode(pattern=self.image_name+self.labelpostfix1)
+            labelNode = slicer.util.getNode(pattern=self.image_name+self.labelpostfix2)
             self.labelNode = labelNode
             self.auto3DGen()
 

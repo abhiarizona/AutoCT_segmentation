@@ -9,7 +9,8 @@ class CT_seg_alg_tumor(object):
     def __init__(self, image_sitk, label_sitk):
         self.image_sitk = image_sitk
         self.label_sitk = label_sitk
-        #self.sigma = sigma
+        #self.multiplier = 1.5
+        global multiplier
 
     def setup(self):
         #############################
@@ -25,7 +26,7 @@ class CT_seg_alg_tumor(object):
         seedpointobj=FastMarching_threshold_slicer()
         seedpoint=seedpointobj.computeCentroid_swap(roi)
 #        seed = (172,191,169)
-        
+        multiplier = 2.5
         semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
                                    numberOfIterations=5,
                                    multiplier=2.5,
@@ -45,7 +46,7 @@ class CT_seg_alg_tumor(object):
 #        n_white_pix = np.sum(semiauto == 1)
         print('Number of white pixels:', white_pix) # To check if the tumors  are segmented out well
         if white_pix > 30000:
-            
+                    multiplier = 2
                     semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
                                                         numberOfIterations=5,
                                                         multiplier=2.0,
@@ -65,7 +66,7 @@ class CT_seg_alg_tumor(object):
                     print('Number of white pixels:', white_pix)
                     
                     if white_pix > 30000:
-                        
+                        multiplier = 1.75
                         semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
                                                             numberOfIterations=5,
                                                             multiplier=1.75,
@@ -86,7 +87,7 @@ class CT_seg_alg_tumor(object):
                         if white_pix > 30000:
                             
                                                                                                         
-                        
+                            multiplier = 1.5
                             semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
                                                                 numberOfIterations=5,
                                                                 multiplier=1.5,
@@ -107,7 +108,7 @@ class CT_seg_alg_tumor(object):
                             # This will work for very small nodules
                             if white_pix > 30000:
                                                                                                                                                                     
-                        
+                                multiplier = 1.2
                                 semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
                                                                     numberOfIterations=5,
                                                                     multiplier=1.2,
@@ -129,7 +130,7 @@ class CT_seg_alg_tumor(object):
                                 if white_pix > 30000:
                                     
                                 
-                                                                                                        
+                                    multiplier = 1.0                                                
                                     semiauto = sitk.ConfidenceConnected(CT_sitk, seedList=[seedpoint],
                                                                         numberOfIterations=5,
                                                                         multiplier=1,
@@ -148,8 +149,9 @@ class CT_seg_alg_tumor(object):
 
                                     print('Number of white pixels:', white_pix)
             
-
-
+        
+        #self.multiplier = multiplier
+        #return semiauto
         return semiauto
 
 
